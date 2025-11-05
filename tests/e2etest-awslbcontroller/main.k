@@ -4,8 +4,8 @@ import models.io.upbound.platform.aws.v1alpha1 as platformawsv1alpha1
 import models.io.upbound.aws.v1beta1 as awsv1beta1
 import models.k8s.apimachinery.pkg.apis.meta.v1 as metav1
 
-# E2E test for XAWSLBController - based on original examples
-# XEKS will automatically create the Helm ProviderConfig
+# E2E test for AWSLBController - based on original examples
+# EKS will automatically create the Helm ProviderConfig
 _items = [
     metav1alpha1.E2ETest{
         metadata.name: "e2etest-xawslbcontroller"
@@ -13,8 +13,8 @@ _items = [
             crossplane.autoUpgrade.channel: "Rapid"
             defaultConditions: ["Ready"]
             manifests: [
-                # XNetwork - prerequisite networking for EKS cluster
-                platformawsv1alpha1.XNetwork{
+                # Network - prerequisite networking for EKS cluster
+                platformawsv1alpha1.Network{
                     metadata: {
                         name: "configuration-aws-lb-controller"
                     }
@@ -47,8 +47,8 @@ _items = [
                         }
                     }
                 },
-                # XEKS - EKS cluster that will create Helm ProviderConfig automatically
-                platformawsv1alpha1.XEKS{
+                # EKS - EKS cluster that will create Helm ProviderConfig automatically
+                platformawsv1alpha1.EKS{
                     metadata: {
                         name: "configuration-aws-lb-controller"
                         labels: {
@@ -71,9 +71,9 @@ _items = [
                         }
                     }
                 },
-                # XAWSLBController - the main resource being tested
-                # XEKS will create Helm ProviderConfig "configuration-aws-lb-controller"
-                platformawsv1alpha1.XAWSLBController{
+                # AWSLBController - the main resource being tested
+                # EKS will create Helm ProviderConfig "configuration-aws-lb-controller"
+                platformawsv1alpha1.AWSLBController{
                     metadata: {
                         name: "configuration-aws-lb-controller"
                         labels: {

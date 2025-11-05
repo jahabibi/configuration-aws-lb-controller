@@ -1,0 +1,9 @@
+apiVersion: aws.platform.upbound.io/v1alpha1
+kind: Network
+metadata:
+  name: configuration-aws-lb-controller
+  namespace: default
+spec:
+  parameters:
+    id: configuration-aws-lb-controller
+    region: us-west-2
