@@ -48,13 +48,13 @@ _items = [
                 },
                 # Usage resource for deletion ordering
                 {
-                    apiVersion: "apiextensions.crossplane.io/v1alpha1"
+                    apiVersion: "protection.crossplane.io/v1beta1"
                     kind: "Usage"
                     metadata.name: "usage-eks-by-awslbcontroller"
                     spec = {
                         replayDeletion: True
                         by = {
-                            apiVersion: "helm.crossplane.io/v1beta1"
+                            apiVersion: "helm.m.crossplane.io/v1beta1"
                             kind: "Release"
                             resourceSelector = {
                                 matchControllerRef: True

@@ -8,7 +8,7 @@ metadata:
 spec:
   parameters:
     region: us-west-2
-    vpcId: vpc-12345678
+    vpcId: vpc-12345678                 # replace with your vpc id
     helm:
       providerConfigName: configuration-aws-lb-controller
     clusterNameSelector:
