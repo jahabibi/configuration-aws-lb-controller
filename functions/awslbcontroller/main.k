@@ -1,6 +1,5 @@
 import models.io.upbound.platform.aws.v1alpha1 as awsv1alpha1
 import models.io.crossplane.helmm.v1beta1 as helmv1beta1
-import models.io.crossplane.protection.v1beta1 as xpprotectionv1beta1
 import models.k8s.apimachinery.pkg.apis.meta.v1 as metav1
 
 import json
