@@ -8,9 +8,10 @@ import models.k8s.apimachinery.pkg.apis.meta.v1 as metav1
 # EKS will automatically create the Helm ProviderConfig
 _items = [
     metav1alpha1.E2ETest{
-        metadata.name: "e2etest-xawslbcontroller"
+        metadata.name: "e2etest-awslbcontroller"
         spec = {
-            crossplane.autoUpgrade.channel: "Rapid"
+            crossplane.autoUpgrade.channel: "None"
+            crossplane.version = "2.0.2-up.5"
             defaultConditions: ["Ready"]
             manifests: [
                 # Network - prerequisite networking for EKS cluster
@@ -65,10 +66,6 @@ _items = [
                                 instanceType: "t3.small"
                             }
                         }
-                        writeConnectionSecretToRef: {
-                            name: "configuration-aws-lb-controller"
-                            namespace: "upbound-system"
-                        }
                     }
                 },
                 # AWSLBController - the main resource being tested
@@ -98,7 +95,10 @@ _items = [
             extraResources = [
                 # Define the provider configuration
                 awsv1beta1.ProviderConfig{
-                    metadata.name = "default"
+                    metadata = {
+                        name = "default"
+                        namespace = "default"
+                    }
                     spec = {
                         credentials = {
                             source = "Upbound"
