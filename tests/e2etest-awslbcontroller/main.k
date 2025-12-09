@@ -18,6 +18,7 @@ _items = [
                 platformawsv1alpha1.Network{
                     metadata: {
                         name: "configuration-aws-lb-controller"
+                        namespace = "default"
                     }
                     spec: {
                         parameters: {
@@ -55,6 +56,7 @@ _items = [
                         labels: {
                             "platform.upbound.io/deletion-ordering": "enabled"
                         }
+                        namespace = "default"
                     }
                     spec: {
                         parameters: {
@@ -76,6 +78,7 @@ _items = [
                         labels: {
                             "platform.upbound.io/deletion-ordering": "enabled"
                         }
+                        namespace: "default"
                     }
                     spec: {
                         parameters: {
