@@ -1,7 +1,7 @@
 
 import models.io.upbound.dev.meta.v1alpha1 as metav1alpha1
 import models.io.upbound.platform.aws.v1alpha1 as platformawsv1alpha1
-import models.io.upbound.aws.v1beta1 as awsv1beta1
+import models.io.upbound.awsm.v1beta1 as awsv1beta1
 import models.k8s.apimachinery.pkg.apis.meta.v1 as metav1
 
 # E2E test for AWSLBController - based on original examples
