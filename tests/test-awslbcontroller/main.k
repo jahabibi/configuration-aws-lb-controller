@@ -45,32 +45,34 @@ _items = [
                         }
                         rollbackLimit: 3
                     }
-                },
-                # Usage resource for deletion ordering
-                {
-                    apiVersion: "protection.crossplane.io/v1beta1"
-                    kind: "Usage"
-                    metadata.name: "usage-eks-by-awslbcontroller"
-                    spec = {
-                        replayDeletion: True
-                        by = {
-                            apiVersion: "helm.m.crossplane.io/v1beta1"
-                            kind: "Release"
-                            resourceSelector = {
-                                matchControllerRef: True
-                            }
-                        }
-                        of = {
-                            apiVersion: "aws.platform.upbound.io/v1alpha1"
-                            kind: "EKS"
-                            resourceSelector = {
-                                matchLabels = {
-                                    "platform.upbound.io/deletion-ordering": "enabled"
-                                }
-                            }
-                        }
-                    }
                 }
+                # NOTE: Usage resource assertion commented out - Usage removed from composition
+                # due to E2E test cleanup deadlock issues.
+                # # Usage resource for deletion ordering
+                # {
+                #     apiVersion: "protection.crossplane.io/v1beta1"
+                #     kind: "Usage"
+                #     metadata.name: "usage-eks-by-awslbcontroller"
+                #     spec = {
+                #         replayDeletion: True
+                #         by = {
+                #             apiVersion: "helm.m.crossplane.io/v1beta1"
+                #             kind: "Release"
+                #             resourceSelector = {
+                #                 matchControllerRef: True
+                #             }
+                #         }
+                #         of = {
+                #             apiVersion: "aws.platform.upbound.io/v1alpha1"
+                #             kind: "EKS"
+                #             resourceSelector = {
+                #                 matchLabels = {
+                #                     "platform.upbound.io/deletion-ordering": "enabled"
+                #                 }
+                #             }
+                #         }
+                #     }
+                # }
             ]
             compositionPath: "apis/awslbcontrollers/composition.yaml"
             xrPath: "examples/awslbcontroller/example.yaml"

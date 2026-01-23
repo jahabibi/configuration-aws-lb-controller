@@ -158,3 +158,6 @@ spec:
                 type: string
               roleArn:
                 type: string
+        required:
+        - spec
+        type: object

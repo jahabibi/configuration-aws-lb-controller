@@ -21,7 +21,7 @@ _metadata = lambda name: str -> any {
 }
 
 _defaults = {
-    managementPolicies = params.managementPolicies
+    managementPolicies = params.managementPolicies or ["*"]
     if params.providerConfigName:
         providerConfigRef = {
             kind = "ProviderConfig"
@@ -101,35 +101,40 @@ _items = [
                     name = params.helm.providerConfigName
                 }
         }
-    },
-    
-    # Usage resource to ensure proper deletion ordering with EKS clusters
-    {
-        apiVersion: "protection.crossplane.io/v1beta1"
-        kind: "Usage"
-        metadata: _metadata("usage-eks-by-awslbcontroller") | {
-            namespace: oxr.metadata.namespace
-        }
-        spec: {
-            replayDeletion: True
-            by: {
-                apiVersion: "helm.m.crossplane.io/v1beta1"
-                kind: "Release"
-                resourceSelector: {
-                    matchControllerRef: True
-                }
-            }
-            of: {
-                apiVersion: "aws.platform.upbound.io/v1alpha1"
-                kind: "EKS"
-                resourceSelector: {
-                    matchLabels: {
-                        "platform.upbound.io/deletion-ordering": "enabled"
-                    }
-                }
-            }
-        }
     }
+
+    # NOTE: Usage resource commented out - causes E2E test cleanup deadlock.
+    # The broad matchLabels selector blocks EKS deletion during parallel cleanup.
+    # The natural dependency chain (helmrelease → ProviderConfig → EKS) provides
+    # sufficient ordering. Re-enable with a more specific selector if needed.
+    #
+    # # Usage resource to ensure proper deletion ordering with EKS clusters
+    # {
+    #     apiVersion: "protection.crossplane.io/v1beta1"
+    #     kind: "Usage"
+    #     metadata: _metadata("usage-eks-by-awslbcontroller") | {
+    #         namespace: oxr.metadata.namespace
+    #     }
+    #     spec: {
+    #         replayDeletion: True
+    #         by: {
+    #             apiVersion: "helm.m.crossplane.io/v1beta1"
+    #             kind: "Release"
+    #             resourceSelector = {
+    #                 matchControllerRef: True
+    #             }
+    #         }
+    #         of: {
+    #             apiVersion: "aws.platform.upbound.io/v1alpha1"
+    #             kind: "EKS"
+    #             resourceSelector: {
+    #                 matchLabels: {
+    #                     "platform.upbound.io/deletion-ordering": "enabled"
+    #                 }
+    #             }
+    #         }
+    #     }
+    # }
 ]
 
 items = _items
