@@ -56,12 +56,12 @@ _items = [
                 }
             ]
             managementPolicies = params.managementPolicies
-            
-            if params.clusterName: 
+
+            if params.clusterName:
                 clusterName = params.clusterName
-            if params.clusterNameRef: 
+            if params.clusterNameRef:
                 clusterNameRef = params.clusterNameRef
-            if params.clusterNameSelector: 
+            if params.clusterNameSelector:
                 clusterNameSelector = params.clusterNameSelector
         }
     },
@@ -72,9 +72,9 @@ _items = [
         spec = {
             forProvider: {
                 chart = {
-                    name = params.helm.chart.name 
-                    repository = params.helm.chart.repo 
-                    version = params.helm.chart.version 
+                    name = params.helm.chart.name
+                    repository = params.helm.chart.repo
+                    version = params.helm.chart.version
                 }
                 namespace: "kube-system"
                 values: {
@@ -83,11 +83,11 @@ _items = [
                     }
                     # Set replicaCount to 2 when PodIdentity is ready, otherwise 0
                     replicaCount: 2 if _isPodIdentityReady else 0
-                    
+
                     # Only set clusterName if available from observed PodIdentity
                     if _observedClusterName:
                         clusterName = _observedClusterName
-                    
+
                     # Set VPC ID if provided to avoid EC2 metadata discovery
                     if params.vpcId: vpcId = params.vpcId
                 }
@@ -103,38 +103,33 @@ _items = [
         }
     }
 
-    # NOTE: Usage resource commented out - causes E2E test cleanup deadlock.
-    # The broad matchLabels selector blocks EKS deletion during parallel cleanup.
-    # The natural dependency chain (helmrelease → ProviderConfig → EKS) provides
-    # sufficient ordering. Re-enable with a more specific selector if needed.
-    #
-    # # Usage resource to ensure proper deletion ordering with EKS clusters
-    # {
-    #     apiVersion: "protection.crossplane.io/v1beta1"
-    #     kind: "Usage"
-    #     metadata: _metadata("usage-eks-by-awslbcontroller") | {
-    #         namespace: oxr.metadata.namespace
-    #     }
-    #     spec: {
-    #         replayDeletion: True
-    #         by: {
-    #             apiVersion: "helm.m.crossplane.io/v1beta1"
-    #             kind: "Release"
-    #             resourceSelector = {
-    #                 matchControllerRef: True
-    #             }
-    #         }
-    #         of: {
-    #             apiVersion: "aws.platform.upbound.io/v1alpha1"
-    #             kind: "EKS"
-    #             resourceSelector: {
-    #                 matchLabels: {
-    #                     "platform.upbound.io/deletion-ordering": "enabled"
-    #                 }
-    #             }
-    #         }
-    #     }
-    # }
+    # Usage resource to ensure proper deletion ordering with EKS clusters
+    {
+        apiVersion: "protection.crossplane.io/v1beta1"
+        kind: "Usage"
+        metadata: _metadata("usage-eks-by-awslbcontroller") | {
+            namespace: oxr.metadata.namespace
+        }
+        spec: {
+            replayDeletion: True
+            by: {
+                apiVersion: "helm.m.crossplane.io/v1beta1"
+                kind: "Release"
+                resourceSelector = {
+                    matchControllerRef: True
+                }
+            }
+            of: {
+                apiVersion: "aws.platform.upbound.io/v1alpha1"
+                kind: "EKS"
+                resourceSelector: {
+                    matchLabels: {
+                        "platform.upbound.io/deletion-ordering": "enabled"
+                    }
+                }
+            }
+        }
+    }
 ]
 
 items = _items
