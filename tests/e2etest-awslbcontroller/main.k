@@ -38,8 +38,6 @@ _items = [
                         }
                     }
                 }
-            ]
-            extraResources = [
                 # Network - prerequisite networking for EKS cluster
                 platformawsv1alpha1.Network{
                     metadata: {
@@ -96,6 +94,8 @@ _items = [
                         }
                     }
                 }
+            ]
+            extraResources = [
                 # Define the provider configuration
                 awsv1beta1.ProviderConfig{
                     metadata = {
