@@ -14,6 +14,32 @@ _items = [
             crossplane.version = "2.0.2-up.5"
             defaultConditions: ["Ready"]
             manifests: [
+                # AWSLBController - the main resource being tested
+                # EKS will create Helm ProviderConfig "configuration-aws-lb-controller"
+                platformawsv1alpha1.AWSLBController{
+                    metadata: {
+                        name: "configuration-aws-lb-controller"
+                        labels: {
+                            "platform.upbound.io/deletion-ordering": "enabled"
+                        }
+                        namespace: "default"
+                    }
+                    spec: {
+                        parameters: {
+                            region: "eu-central-1"
+                            helm: {
+                                providerConfigName: "configuration-aws-lb-controller"
+                            }
+                            clusterNameSelector: {
+                                matchLabels: {
+                                    "crossplane.io/composite": "configuration-aws-lb-controller"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+            extraResources = [
                 # Network - prerequisite networking for EKS cluster
                 platformawsv1alpha1.Network{
                     metadata: {
@@ -48,7 +74,7 @@ _items = [
                             ]
                         }
                     }
-                },
+                }
                 # EKS - EKS cluster that will create Helm ProviderConfig automatically
                 platformawsv1alpha1.EKS{
                     metadata: {
@@ -69,33 +95,7 @@ _items = [
                             }
                         }
                     }
-                },
-                # AWSLBController - the main resource being tested
-                # EKS will create Helm ProviderConfig "configuration-aws-lb-controller"
-                platformawsv1alpha1.AWSLBController{
-                    metadata: {
-                        name: "configuration-aws-lb-controller"
-                        labels: {
-                            "platform.upbound.io/deletion-ordering": "enabled"
-                        }
-                        namespace: "default"
-                    }
-                    spec: {
-                        parameters: {
-                            region: "eu-central-1"
-                            helm: {
-                                providerConfigName: "configuration-aws-lb-controller"
-                            }
-                            clusterNameSelector: {
-                                matchLabels: {
-                                    "crossplane.io/composite": "configuration-aws-lb-controller"
-                                }
-                            }
-                        }
-                    }
                 }
-            ]
-            extraResources = [
                 # Define the provider configuration
                 awsv1beta1.ProviderConfig{
                     metadata = {
