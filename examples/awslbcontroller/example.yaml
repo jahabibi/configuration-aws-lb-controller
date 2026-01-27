@@ -1,13 +1,14 @@
 apiVersion: aws.platform.upbound.io/v1alpha1
-kind: XAWSLBController
+kind: AWSLBController
 metadata:
   name: configuration-aws-lb-controller
   labels:
     platform.upbound.io/deletion-ordering: enabled
+  namespace: default
 spec:
   parameters:
-    region: eu-central-1
-    vpcId: vpc-12345678
+    region: us-west-2
+    vpcId: vpc-12345678                 # replace with your vpc id
     helm:
       providerConfigName: configuration-aws-lb-controller
     clusterNameSelector:

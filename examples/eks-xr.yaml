@@ -1,0 +1,15 @@
+apiVersion: aws.platform.upbound.io/v1alpha1
+kind: EKS
+metadata:
+  name: configuration-aws-lb-controller
+  namespace: default
+  labels:
+    platform.upbound.io/deletion-ordering: "enabled"
+spec:
+  parameters:
+    id: configuration-aws-lb-controller
+    region: us-west-2
+    version: "1.33"
+    nodes:
+      count: 1
+      instanceType: t3.small

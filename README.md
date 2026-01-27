@@ -6,8 +6,8 @@ This repository provides a Crossplane configuration to install the AWS Load Bala
 
 This configuration creates a complete AWS Load Balancer Controller deployment with the following components:
 
-- **XAWSLBController**: The main composite resource that orchestrates the deployment of the AWS Load Balancer Controller
-- **XPodIdentity**: Creates IAM roles and pod identity associations for secure AWS API access using IRSA
+- **AWSLBController**: The main composite resource that orchestrates the deployment of the AWS Load Balancer Controller
+- **PodIdentity**: Creates IAM roles and pod identity associations for secure AWS API access using IRSA
 - **Helm Release**: Deploys the AWS Load Balancer Controller Helm chart with proper configuration
 - **Usage Resources**: Ensures proper deletion ordering between the controller and EKS cluster resources
 
@@ -22,13 +22,13 @@ The AWS Load Balancer Controller enables you to:
 ### Resource Dependencies
 
 ```
-XAWSLBController
-├── XPodIdentity (IAM Role + Pod Identity Association)
+AWSLBController
+├── PodIdentity (IAM Role + Pod Identity Association)
 │   ├── IAM Role (with AWS Load Balancer Controller policy)
 │   └── PodIdentityAssociation (links service account to IAM role)
 ├── Helm Release (AWS Load Balancer Controller chart)
-│   └── Depends on: cluster name from XPodIdentity status
-└── Usage (ensures proper deletion ordering with XEKS)
+│   └── Depends on: cluster name from PodIdentity status
+└── Usage (ensures proper deletion ordering with EKS)
 ```
 
 ### Key Features
@@ -43,15 +43,15 @@ XAWSLBController
 ### Prerequisites
 
 - An EKS cluster created by [configuration-aws-eks](https://github.com/upbound/configuration-aws-eks)
-- Or any XEKS resource with proper labels for selector matching
+- Or any EKS resource with proper labels for selector matching
 
 ### Basic Deployment
 
-1. **Create the XAWSLBController resource:**
+1. **Create the AWSLBController resource:**
 
 ```yaml
 apiVersion: aws.platform.upbound.io/v1alpha1
-kind: XAWSLBController
+kind: AWSLBController
 metadata:
   name: my-lb-controller
   labels:
@@ -78,7 +78,7 @@ You can customize the deployment with additional parameters:
 
 ```yaml
 apiVersion: aws.platform.upbound.io/v1alpha1
-kind: XAWSLBController
+kind: AWSLBController
 metadata:
   name: my-lb-controller
 spec:
@@ -111,7 +111,7 @@ This configuration is designed to work seamlessly with the Upbound EKS configura
 ```yaml
 # Deploy EKS cluster first
 apiVersion: aws.platform.upbound.io/v1alpha1
-kind: XEKS
+kind: EKS
 metadata:
   name: my-cluster
   labels:
@@ -125,7 +125,7 @@ spec:
 ---
 # Then deploy Load Balancer Controller
 apiVersion: aws.platform.upbound.io/v1alpha1
-kind: XAWSLBController
+kind: AWSLBController
 metadata:
   name: my-lb-controller
   labels:
@@ -137,7 +137,7 @@ spec:
       matchLabels:
         crossplane.io/composite: my-cluster
     helm:
-      providerConfigName: my-cluster  # XEKS creates this automatically
+      providerConfigName: my-cluster  # EKS creates this automatically
 ```
 
 ## Testing
@@ -151,7 +151,7 @@ up test run tests/test-xawslbcontroller
 ```
 
 This test verifies:
-- XPodIdentity resource is created with correct IAM policy
+- PodIdentity resource is created with correct IAM policy
 - Helm Release resource is created with proper configuration
 - Usage resource is created for deletion ordering
 
@@ -168,9 +168,9 @@ up test run tests/e2etest-xawslbcontroller --e2e
 ```
 
 The E2E test creates:
-- XNetwork (VPC, subnets, security groups)
-- XEKS (EKS cluster with node groups)
-- XAWSLBController (Load Balancer Controller)
+- Network (VPC, subnets, security groups)
+- EKS (EKS cluster with node groups)
+- AWSLBController (Load Balancer Controller)
 
 ### Manual Verification
 
@@ -212,7 +212,7 @@ EOF
 ### Common Issues
 
 1. **"Chart cannot be installed without a valid clusterName!"**
-   - The controller waits for the XPodIdentity to provide the actual cluster name
+   - The controller waits for the PodIdentity to provide the actual cluster name
    - Check that your EKS cluster is ready and the pod identity is configured
 
 2. **IAM permission errors**
@@ -220,16 +220,16 @@ EOF
    - Ensure your AWS provider has sufficient permissions to create IAM roles
 
 3. **Helm provider configuration missing**
-   - If using XEKS, the Helm provider config is created automatically
+   - If using EKS, the Helm provider config is created automatically
    - For custom setups, ensure the Helm provider config exists
 
 ### Debugging
 
 ```bash
-# Check XAWSLBController status
+# Check AWSLBController status
 kubectl describe xawslbcontroller my-lb-controller
 
-# Check XPodIdentity status
+# Check PodIdentity status
 kubectl describe xpodidentity
 
 # Check Helm Release status
@@ -243,7 +243,7 @@ kubectl describe deployment aws-load-balancer-controller -n kube-system
 
 This configuration depends on:
 
-- **configuration-aws-eks-pod-identity** (v0.8.1): Provides XPodIdentity for IRSA setup
+- **configuration-aws-eks-pod-identity** (v0.8.1): Provides PodIdentity for IRSA setup
 - **provider-helm**: Deploys the AWS Load Balancer Controller Helm chart
 - **function-auto-ready**: Ensures resources are marked ready when appropriate
 
