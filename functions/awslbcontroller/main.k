@@ -23,10 +23,8 @@ _metadata = lambda name: str -> any {
 _defaults = {
     managementPolicies = params.managementPolicies or ["*"]
     if params.providerConfigName:
-        providerConfigRef = {
-            kind = "ProviderConfig"
-            name = params.providerConfigName
-        }
+        providerConfigName = params.providerConfigName or "default"
+
 }
 
 # Get cluster name from observed PodIdentity (only available after it's created)

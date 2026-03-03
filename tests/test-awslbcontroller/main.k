@@ -15,6 +15,7 @@ _items = [
                     metadata.name: "podidentity"
                     spec = {
                         parameters = {
+                            providerConfigName: "default"
                             region: "us-west-2"
                             serviceAccount = {
                                 name: "aws-load-balancer-controller"
