@@ -1,30 +1,49 @@
-
 import models.io.upbound.dev.meta.v1alpha1 as metav1alpha1
-import models.io.upbound.platform.aws.v1alpha1 as awsv1alpha1
 import models.io.crossplane.helmm.v1beta1 as helmv1beta1
 import models.k8s.apimachinery.pkg.apis.meta.v1 as metav1
 
+# Stand-in for the referenced Compute's published status, supplied as an extra
+# resource so the composition resolves the Helm target (connectionConfigName),
+# the vpc id (networkId) and the cluster name via the same extra-resources path
+# it uses in-cluster. Untyped dict — the Compute model is not a dependency here.
+_computeExtra = {
+    apiVersion = "aws.platform.upbound.io/v1alpha1"
+    kind = "Compute"
+    metadata = {
+        name = "my-compute"
+        namespace = "default"
+    }
+    status = {
+        clusterName = "my-cluster"
+        connectionConfigName = "my-compute"
+        networkId = "vpc-12345678"
+        region = "us-west-2"
+    }
+}
 
 _items = [
     metav1alpha1.CompositionTest{
-        metadata.name: "test-awslbcontroller"
+        metadata.name: "test-ingress"
         spec = {
             assertResources: [
-                # PodIdentity for AWS Pod Identity
-                awsv1alpha1.PodIdentity{
-                    metadata.name: "podidentity"
+                # Nested Identity for the controller's ServiceAccount (curated role).
+                {
+                    apiVersion: "aws.platform.upbound.io/v1alpha1"
+                    kind: "Identity"
+                    metadata.name: "identity"
                     spec = {
                         parameters = {
-                            providerConfigName: "default"
+                            federationType: "pod-identity"
+                            role: "aws-lb-controller"
+                            reclaimPolicy: "Delete"
                             region: "us-west-2"
-                            serviceAccount = {
-                                name: "aws-load-balancer-controller"
-                                namespace: "kube-system"
+                            computeRef = {
+                                id: "my-compute"
                             }
                         }
                     }
-                },
-                # Helm Release for AWS Load Balancer Controller
+                }
+                # Helm Release — chart is an L3 constant; placement resolved from Compute.
                 helmv1beta1.Release{
                     metadata.name: "helmrelease"
                     spec = {
@@ -36,19 +55,23 @@ _items = [
                             }
                             namespace: "kube-system"
                             values = {
-                                clusterName: "configuration-aws-lb-controller-c8ck8"
+                                clusterName: "my-cluster"
                                 serviceAccount = {
                                     name: "aws-load-balancer-controller"
                                 }
-                                replicaCount: 2
+                                replicaCount: 0
                                 vpcId: "vpc-12345678"
                             }
                         }
                         rollbackLimit: 3
+                        managementPolicies: ["*"]
+                        providerConfigRef = {
+                            kind: "ProviderConfig"
+                            name: "my-compute"
+                        }
                     }
                 }
-
-                # Usage resource for deletion ordering
+                # Usage resource for deletion ordering (Release before Compute).
                 {
                     apiVersion: "protection.crossplane.io/v1beta1"
                     kind: "Usage"
@@ -64,7 +87,7 @@ _items = [
                         }
                         of = {
                             apiVersion: "aws.platform.upbound.io/v1alpha1"
-                            kind: "EKS"
+                            kind: "Compute"
                             resourceSelector = {
                                 matchLabels = {
                                     "platform.upbound.io/deletion-ordering": "enabled"
@@ -77,38 +100,7 @@ _items = [
             compositionPath: "apis/awslbcontrollers/composition.yaml"
             xrPath: "examples/awslbcontroller/example.yaml"
             xrdPath: "apis/awslbcontrollers/definition.yaml"
-            observedResources: [
-                awsv1alpha1.PodIdentity{
-                    metadata = {
-                        name = "podidentity"
-                        annotations = {
-                              "crossplane.io/composition-resource-name" = "podidentity"
-                        }
-                    }
-                    spec = {
-                        parameters = {
-                            region: "eu-central-1"
-                            serviceAccount = {
-                                name: "aws-load-balancer-controller"
-                                namespace: "kube-system"
-                            }
-                        }
-                    }
-                    status = {
-                        conditions = [
-                            {
-                                type = "Ready"
-                                status = "True"
-                                reason = "Available"
-                                lastTransitionTime = "2025-08-13T17:25:33Z"
-                            }
-                        ]
-                        podIdentity = {
-                            clusterName = "configuration-aws-lb-controller-c8ck8" # Important for proper Release spec test
-                        }
-                    }
-                }
-            ]
+            extraResources: [_computeExtra]
             timeoutSeconds: 60
             validate: False
         }

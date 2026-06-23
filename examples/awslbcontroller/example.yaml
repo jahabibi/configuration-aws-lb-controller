@@ -1,5 +1,5 @@
 apiVersion: aws.platform.upbound.io/v1alpha1
-kind: AWSLBController
+kind: Ingress
 metadata:
   name: configuration-aws-lb-controller
   labels:
@@ -7,10 +7,10 @@ metadata:
   namespace: default
 spec:
   parameters:
+    type: alb
     region: us-west-2
-    vpcId: vpc-12345678                 # replace with your vpc id
-    helm:
-      providerConfigName: configuration-aws-lb-controller
-    clusterNameSelector:
-      matchLabels:
-        crossplane.io/composite: configuration-aws-lb-controller
+    # Reference the cluster by platform id; the composition resolves its
+    # published status (connection config, vpc id, cluster name) via
+    # extra-resources. No raw vpcId or hardcoded ProviderConfig name.
+    computeRef:
+      id: my-compute

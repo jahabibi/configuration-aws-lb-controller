@@ -1,14 +1,14 @@
 apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
-  name: awslbcontrollers.aws.platform.upbound.io
+  name: ingresses.aws.platform.upbound.io
 spec:
   group: aws.platform.upbound.io
   names:
     categories:
     - crossplane
-    kind: AWSLBController
-    plural: awslbcontrollers
+    kind: Ingress
+    plural: ingresses
   scope: Namespaced
   versions:
   - name: v1alpha1
@@ -16,7 +16,10 @@ spec:
     served: true
     schema:
       openAPIV3Schema:
-        description: AWSLBController is the Schema for the AWSLBController API.
+        description: >-
+          Ingress installs cluster ingress / load-balancing. The controller
+          implementation (the AWS Load Balancer Controller, via Helm) is an L3
+          detail, not leaked API surface.
         type: object
         properties:
           spec:
@@ -24,140 +27,62 @@ spec:
             properties:
               parameters:
                 type: object
-                description: AWS Load Balancer Controller configuration parameters.
+                description: Ingress configuration parameters.
                 properties:
+                  type:
+                    type: string
+                    enum: [alb]
+                    default: alb
+                    description: >-
+                      Ingress type. Implemented in L3; adding nginx or Gateway API
+                      later is an additive enum value, not a new API.
+                  computeRef:
+                    type: object
+                    description: >-
+                      Reference, by platform id, to the Compute (cluster) this
+                      ingress installs into. Resolved in L3 from Compute's
+                      published status (connection config, vpc id, cluster name) —
+                      no Crossplane ref/selector machinery, no raw vpcId.
+                    properties:
+                      id:
+                        type: string
+                        description: Platform id of the Compute (its metadata name).
+                    required:
+                    - id
                   region:
                     type: string
-                    description: Region is the region your cluster is running in.
-                    default: "us-west-2"
-                  vpcId:
+                    description: Cloud region the controller runs in.
+                  reclaimPolicy:
                     type: string
-                    description: The VPC ID for the Kubernetes cluster. Set this manually when your pods are unable to use the metadata service to determine this automatically
-                  clusterName:
-                    description: The name of the cluster to create the association
-                      in.
-                    type: string
-                  clusterNameRef:
-                    description: Reference to a Cluster in eks to populate clusterName.
-                    properties:
-                      name:
-                        description: Name of the referenced object.
-                        type: string
-                      policy:
-                        description: Policies for referencing.
-                        properties:
-                          resolution:
-                            default: Required
-                            description: |-
-                              Resolution specifies whether resolution of this reference is required.
-                              The default is 'Required', which means the reconcile will fail if the
-                              reference cannot be resolved. 'Optional' means this reference will be
-                              a no-op if it cannot be resolved.
-                            enum:
-                              - Required
-                              - Optional
-                            type: string
-                          resolve:
-                            description: |-
-                              Resolve specifies when this reference should be resolved. The default
-                              is 'IfNotPresent', which will attempt to resolve the reference only when
-                              the corresponding field is not present. Use 'Always' to resolve the
-                              reference on every reconcile.
-                            enum:
-                              - Always
-                              - IfNotPresent
-                            type: string
-                        type: object
-                    required:
-                      - name
+                    enum: [Delete, Retain]
+                    default: Delete
+                    description: >-
+                      Outcome intent (Kubernetes PersistentVolume vocabulary). The
+                      mapping to Crossplane management policies is owned by the
+                      composition; this field does not echo Crossplane machinery.
+                  overrides:
                     type: object
-                  clusterNameSelector:
-                    description: Selector for a Cluster in eks to populate clusterName.
-                    properties:
-                      matchControllerRef:
-                        description: |-
-                          MatchControllerRef ensures an object with the same controller reference
-                          as the selecting object is selected.
-                        type: boolean
-                      matchLabels:
-                        additionalProperties:
-                          type: string
-                        description: MatchLabels ensures an object with matching labels
-                          is selected.
-                        type: object
-                      policy:
-                        description: Policies for selection.
-                        properties:
-                          resolution:
-                            default: Required
-                            description: |-
-                              Resolution specifies whether resolution of this reference is required.
-                              The default is 'Required', which means the reconcile will fail if the
-                              reference cannot be resolved. 'Optional' means this reference will be
-                              a no-op if it cannot be resolved.
-                            enum:
-                              - Required
-                              - Optional
-                            type: string
-                          resolve:
-                            description: |-
-                              Resolve specifies when this reference should be resolved. The default
-                              is 'IfNotPresent', which will attempt to resolve the reference only when
-                              the corresponding field is not present. Use 'Always' to resolve the
-                              reference on every reconcile.
-                            enum:
-                              - Always
-                              - IfNotPresent
-                            type: string
-                        type: object
-                    type: object
-                  managementPolicies:
-                      description: ManagementPolicies for AWS EC2 resources. Defaults to ["*"] which includes all operations (Create, Observe, Update, Delete, LateInitialize). To orphan resources on deletion, use ["Create", "Observe", "Update", "LateInitialize"].
-                      type: array
-                      items:
-                        type: string
-                        enum:
-                          - "*"
-                          - Create
-                          - Observe
-                          - Update
-                          - Delete
-                          - LateInitialize
-                        default: "*"
-                  providerConfigName:
-                    description: Crossplane ProviderConfig to use for provisioning aws resources
-                    type: string
-                  helm:
-                    type: object
-                    description: Configuration for operators.
+                    description: >-
+                      Bounded escape hatch with an explicit support boundary.
                     properties:
                       providerConfigName:
-                        description: Crossplane ProviderConfig to use for provisioning helm resources
                         type: string
-                      chart:
-                        type: object
-                        description: Configuration for the Helm Chart
-                        properties:
-                          name:
-                            type: string
-                            description: chart name
-                          repo:
-                            type: string
-                            description: chart repo
-                          version:
-                            type: string
-                            description: chart version
-                        default:
-                          name: "aws-load-balancer-controller"
-                          repo: "https://aws.github.io/eks-charts"
-                          version: "1.8.3"
+                        description: >-
+                          Crossplane ProviderConfig for account/credential
+                          selection. Defaults to "default".
+                required:
+                - computeRef
+            required:
+            - parameters
           status:
             type: object
             properties:
-              clusterName:
-                type: string
+              ready:
+                type: boolean
+                description: Whether the ingress controller's identity is established.
               roleArn:
                 type: string
+                description: ARN of the controller's IAM role (from the nested Identity).
         required:
         - spec
         type: object

@@ -1,13 +1,13 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: awslbcontrollers.aws.platform.upbound.io
+  name: ingresses.aws.platform.upbound.io
   labels:
     provider: helm
 spec:
   compositeTypeRef:
     apiVersion: aws.platform.upbound.io/v1alpha1
-    kind: AWSLBController
+    kind: Ingress
   mode: Pipeline
   pipeline:
   - functionRef:
