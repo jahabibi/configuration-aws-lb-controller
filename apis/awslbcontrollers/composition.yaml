@@ -1,9 +1,9 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: ingresses.aws.platform.upbound.io
   labels:
     provider: helm
+  name: ingresses.aws.platform.upbound.io
 spec:
   compositeTypeRef:
     apiVersion: aws.platform.upbound.io/v1alpha1
@@ -11,8 +11,8 @@ spec:
   mode: Pipeline
   pipeline:
   - functionRef:
-      name: upbound-configuration-aws-lb-controllerawslbcontroller
-    step: awslbcontroller
+      name: upbound-configuration-aws-lb-controllerawslbcontroller-py
+    step: awslbcontroller-py
   - functionRef:
       name: crossplane-contrib-function-auto-ready
     step: crossplane-contrib-function-auto-ready

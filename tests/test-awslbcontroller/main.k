@@ -61,6 +61,7 @@ _items = [
                                 }
                                 replicaCount: 0
                                 vpcId: "vpc-12345678"
+                                region: "us-west-2"
                             }
                         }
                         rollbackLimit: 3
